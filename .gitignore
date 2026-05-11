@@ -8,3 +8,6 @@ mkcert.exe
 *.pem 
 *.crt 
 *.exe 
+Run_ti-desk.bat 
+To Do 
+drop_tickets.sql 
