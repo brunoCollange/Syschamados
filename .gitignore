@@ -1,3 +1,10 @@
 node_modules/ 
 tidesk.db 
 package-lock.json 
+localhost-key.pem 
+localhost.pem 
+rootCA.crt 
+mkcert.exe 
+*.pem 
+*.crt 
+*.exe 
