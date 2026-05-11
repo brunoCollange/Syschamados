@@ -1,0 +1,57 @@
+--To Do--
+
+Urgente: 
+
+- botão mobile "voltar" não funciona
+- sistema considerando o input departamento como usuário na hora de salvar 
+a senha no google
+- sistema entrar na página dashboard sempre que logar
+- contagem de usuários cadastrados
+- sistema com horário errado
+___________________________________________________________________________________
+Não urgente: 
+
+- criar app mobile pra com uma API pro sistema pra visualizar notificações pelo celular
+- criar página de avisos para usuários (com notificações)
+- aceitar chamado e atribuir a um único administrador (para diversos admins) 
+- atualizar certificado para acesso externo
+___________________________________________________________________________________
+Resolvido:
+
+- Abrir chamado -> Ver chamado
+- Adicionar Categoria "Treinamento"
+- arrumar historico de chamados
+- Erro 500 ao criar/editar usuário já existente
+- ignorar maiusculas e minusculas no usuário - login
+- barra de buscar usuários funcional
+- botão de imprimir tickets apenas para administrador do sistema
+- chat em tempo real
+- remover status "fechado"
+- chegar notificações no windows de novas mensagens (usuário e adm) 
+- Modal de confirmação para alterar Status do chamado
+- mudar ícone de alterar senha
+- Testar acesso via IP
+- notificação de mensagens do chat
+- forçar navegador a perguntar sobre liberar as notificações
+- aba "Todos os chamados", "Meus chamados" e "Dashboard" atualizar em tempo real
+- sistema voltando para dashboard ao atualizar a página
+- cor bg dos icones ao alterar status do chamado
+- marcar notificação como lida ao clicar nela
+- colocar um background black no ícone da colliveir na notificação
+- .bat só abre endereço no navegador depois de fechar o prompt
+- entender como a sessão continua ativa no navegador
+- fechar o chat assim que o chamado for resolvido
+- adicionar hora ao lado da data nas informações do chamado
+- inserir reticências (...) quando o nome do solicitante for muito grande    (informaçoes do chamado)
+- definir a senha de todos os usuários
+- melhorar layout página gerenciar usuários
+- http -> https
+- Google nao reconhece como tela de login
+- aprender a reinciar os serviços
+- criar VM com linux para hospedar o sistema
+- chrome não reconhece página de login como página de login (impossivel salvar senha) 
+- criar passo a passo certificado ssl local e inserir na documentação(mkcert)
+- atualizar documentação
+- apagar a palavra Inicial (senha inicial) na página de criação de usuário
+- criar acesso externo
+- responsividade
