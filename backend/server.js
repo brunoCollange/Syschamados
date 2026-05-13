@@ -97,7 +97,7 @@ if (!adminExists) {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(session({
-  secret: 'tidesk-secret-2024',
+  secret: 'x9#kL2mQpZ7vRnTw4yBdEuAoWsJcFhGi',
   resave: false,
   saveUninitialized: false,
   cookie: { maxAge: 8 * 60 * 60 * 1000 } // 8h
