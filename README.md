@@ -1,485 +1,346 @@
-# Syschamados UMS — Sistema de Chamados de TI
+# Syschamados UMS
 
-Sistema de chamados profissional para suporte de TI, desenvolvido por Bruno Collange.
+Sistema de chamados de TI desenvolvido para gerenciamento de solicitações internas. Interface web responsiva, sem dependências de banco externo — tudo roda localmente com Node.js e SQLite.
+
+**Desenvolvido por Bruno Collange**
+
+---
+
+## Sumário
+
+- [Requisitos](#requisitos)
+- [Instalação](#instalação)
+- [Iniciando o sistema](#iniciando-o-sistema)
+- [Acesso padrão](#acesso-padrão)
+- [Estrutura do projeto](#estrutura-do-projeto)
+- [Funcionalidades](#funcionalidades)
+- [Perfis de usuário](#perfis-de-usuário)
+- [API — Rotas disponíveis](#api--rotas-disponíveis)
+- [Configurações técnicas](#configurações-técnicas)
+
+---
+
+## Requisitos
+
+- **Node.js** v18 ou superior — [nodejs.org](https://nodejs.org)
+- **npm** (incluído no Node.js)
+- Sistema operacional: Windows, Linux ou macOS
+
+---
+
+## Instalação
+
+### 1. Clone ou copie o projeto
+
+```bash
+git clone <url-do-repositorio>
+cd ti-desk
+```
+
+### 2. Instale as dependências
+
+```bash
+npm install
+```
+
+### 3. Certificado HTTPS (somente Windows — já incluso no projeto)
+
+O projeto já vem com os arquivos `localhost.pem` e `localhost-key.pem` prontos para uso.  
+Para que o navegador confie no certificado sem avisos, instale o `rootCA.crt` como autoridade confiável:
+
+1. Dê duplo clique em `rootCA.crt`
+2. Clique em **Instalar Certificado**
+3. Selecione **Computador Local** → **Autoridades de Certificação Raiz Confiáveis**
+4. Confirme e finalize
+
+> Para gerar novos certificados (caso necessário), use o `mkcert.exe` incluído:
+> ```
+> mkcert.exe -key-file localhost-key.pem -cert-file localhost.pem localhost 127.0.0.1
+> ```
+
+### 4. (Opcional) Modo HTTP sem HTTPS
+
+Para usar sem certificado, edite `backend/server.js` e substitua o bloco final:
+
+```js
+// Comente o bloco HTTPS:
+// https.createServer({ ... }).listen(...)
+
+// Descomente o bloco HTTP:
+app.listen(PORT, () => console.log(`TI Desk rodando em http://localhost:${PORT}`));
+```
+
+---
+
+## Iniciando o sistema
+
+### Opção A — Script automático (Windows)
+
+Execute o arquivo `Run_ti-desk.bat` como **Administrador**. Ele inicia o servidor e abre o navegador automaticamente em `https://localhost:3000`.
+
+### Opção B — Terminal
+
+```bash
+# Produção
+npm start
+
+# Desenvolvimento (com hot-reload via nodemon)
+npm run dev
+```
+
+Acesse: **https://localhost:3000**
+
+> O banco de dados `tidesk.db` e a pasta `uploads/` são criados automaticamente na primeira execução.
+
+---
+
+## Acesso padrão
+
+| Campo   | Valor      |
+|---------|------------|
+| Usuário | `admin`    |
+| Senha   | `admin123` |
+| Perfil  | Administrador TI |
+
+> Altere a senha do admin após o primeiro acesso em **Usuários → Redefinir Senha**.
+
+---
+
+## Estrutura do projeto
+
+```
+ti-desk/
+├── backend/
+│   └── server.js          # API REST + servidor Express
+├── frontend/
+│   └── public/
+│       ├── index.html     # SPA — estrutura base
+│       ├── css/
+│       │   └── style.css  # Estilos globais
+│       └── js/
+│           ├── api.js     # Helper de requisições HTTP
+│           ├── app.js     # Roteamento, autenticação, notificações
+│           └── pages/
+│               ├── dashboard.js     # Tela inicial com estatísticas
+│               ├── tickets.js       # Meus Chamados / Todos os Chamados
+│               ├── ticket-detail.js # Detalhe e chat do chamado
+│               ├── new-ticket.js    # Abertura de novo chamado
+│               ├── users.js         # Gestão de usuários (admin)
+│               └── history.js       # Histórico de chamados resolvidos
+├── uploads/               # Imagens e arquivos anexados (criado automaticamente)
+├── tidesk.db              # Banco SQLite (criado automaticamente)
+├── package.json
+├── localhost.pem          # Certificado SSL
+├── localhost-key.pem      # Chave privada SSL
+├── rootCA.crt             # Autoridade certificadora raiz
+├── mkcert.exe             # Ferramenta de geração de certificados (Windows)
+└── Run_ti-desk.bat        # Inicializador rápido para Windows
+```
 
 ---
 
 ## Funcionalidades
 
-- Login por **usuário + senha** com perfis Admin (TI) e Usuário
-- Login **case-insensitive** — maiúsculas e minúsculas são tratadas como iguais
-- Salvamento de senha pelo navegador (Chrome/Edge) via formulário HTML nativo
-- Dashboard com estatísticas em tempo real (atualização automática a cada 10s)
-- Abertura de chamados com upload de imagens (até 5 arquivos, 10MB cada)
-- Chat de atendimento por chamado com atualização em tempo real (polling a cada 5s)
-- Chamados resolvidos bloqueiam novas mensagens no chat
-- Confirmação visual antes de alterar o status de um chamado
-- Notificações internas no sistema (painel de notificações)
-- Notificações nativas do navegador/Windows (Web Notifications API)
-- Notificação automática a todos os admins quando chamado é aberto
-- Notificação automática ao usuário quando chamado é resolvido
-- Filtro de chamados por status e busca por título, ID ou descrição
-- Suporte a múltiplos status simultâneos no filtro via API
-- Gestão completa de usuários: criar, editar, ativar/desativar, redefinir senha
-- Validação de duplicidade de nome e usuário ao criar/editar
-- Avatar calculado automaticamente a partir do nome do usuário
-- Lista de chamados com atualização automática a cada 15s
-- Histórico de chamados resolvidos com filtro por mês
-- Impressão de chamados e histórico (apenas administradores na lista)
-- Datas e horários exibidos no formato brasileiro (dd/mm/aaaa • hh:mm)
-- Interface responsiva com suporte para mobile (menu hambúrguer)
-- Banco de dados SQLite local (sem configuração extra)
-- HTTPS com certificado local via mkcert
-- Sessão de login com duração de 8 horas
-- Atribuição de responsável TI por chamado (admin)
+### Autenticação
+
+- Login com usuário e senha
+- Sessão com duração de **8 horas**
+- Logout com encerramento de sessão no servidor
+- Verificação automática de sessão ativa ao carregar a página
+- Senha armazenada com hash **bcrypt**
 
 ---
 
-## Pré-requisitos
+### Dashboard
 
-### Windows
-- **Node.js** v20 ou superior → https://nodejs.org
-- **mkcert** → https://github.com/FiloSottile/mkcert/releases/latest
-- **Visual Studio Build Tools** com workload "Desktop development with C++"
-
-### Linux (Ubuntu Server)
-- **Node.js** v20 ou superior
-- **mkcert**
-- **build-essential** (para compilar o better-sqlite3)
+- Contadores em tempo real: **Total**, **Abertos**, **Em Andamento** e **Resolvidos**
+- Tabela com os **6 chamados mais recentes**, com linhas clicáveis
+- Breakdown de chamados **por categoria** (somente admin)
+- Atualização automática a cada **10 segundos**
 
 ---
 
-## Instalação — Windows
+### Meus Chamados
 
-### 1. Instale o Node.js
-
-Baixe e instale o Node.js v20+ em https://nodejs.org. Marque a opção de instalar as ferramentas de build (Build Tools) durante a instalação.
-
-### 2. Instale as dependências do projeto
-
-```cmd
-cd C:\ti-desk
-npm install
-```
-
-### 3. Configure o HTTPS com mkcert
-
-Baixe o `mkcert-v*-windows-amd64.exe`, renomeie para `mkcert.exe` e coloque na pasta `C:\ti-desk`.
-
-No CMD como **Administrador**:
-
-```cmd
-cd C:\ti-desk
-mkcert -install
-mkcert localhost 127.0.0.1 SEU_IP_LOCAL
-```
-
-> Substitua `SEU_IP_LOCAL` pelo IP da máquina (ex: `192.168.1.100`).
-
-Isso vai gerar dois arquivos:
-- `localhost+2.pem` — certificado
-- `localhost+2-key.pem` — chave privada
-
-Verifique no `backend/server.js` se os nomes dos arquivos batem com o que foi gerado:
-
-```js
-const cert = fs.readFileSync('./localhost+2.pem');
-const key  = fs.readFileSync('./localhost+2-key.pem');
-```
-
-### 4. Inicie o servidor
-
-```cmd
-npm start
-```
-
-### 5. Acesse no navegador
-
-```
-https://localhost:3000
-https://SEU_IP_LOCAL:3000
-```
-
-### 6. Inicialização automática com .bat
-
-Crie um arquivo `Run_ti-desk.bat` na pasta do projeto:
-
-```bat
-@echo off
-net session >nul 2>&1
-if %errorLevel% == 0 (
-    cd C:\ti-desk
-    echo Iniciando Syschamados...
-    npm start
-    start https://localhost:3000/
-) else (
-    powershell -Command "Start-Process '%~f0' -Verb RunAs"
-    exit
-)
-```
-
-Execute sempre como **Administrador**.
-
-### 7. Inicialização automática com PM2 (opcional, para rodar em background)
-
-```cmd
-npm install -g pm2
-pm2 start backend/server.js --name syschamados
-pm2 startup
-pm2 save
-```
+- Lista todos os chamados abertos pelo usuário logado (qualquer perfil)
+- **Busca** por título, ID ou descrição
+- **Filtro de status**: Aberto, Em Andamento, Resolvido, Todos os Status
+- **Paginação** com 10 chamados por página
+- Linhas clicáveis para acessar o detalhe
+- Atualização automática a cada **15 segundos**
 
 ---
 
-## Instalação — Linux Ubuntu Server
+### Todos os Chamados *(somente admin)*
 
-### 1. Atualize o sistema
-
-```bash
-sudo apt update && sudo apt upgrade -y
-```
-
-### 2. Instale o Node.js v20
-
-```bash
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install -y nodejs
-```
-
-Verifique:
-
-```bash
-node -v
-npm -v
-```
-
-### 3. Instale as ferramentas de build
-
-```bash
-sudo apt install -y build-essential
-```
-
-### 4. Copie os arquivos do projeto para o servidor
-
-Sugestão de destino:
-
-```bash
-sudo mkdir -p /var/www/ti-desk
-sudo chown $USER:$USER /var/www/ti-desk
-```
-
-Copie os arquivos via SCP a partir do Windows:
-
-```powershell
-scp -r C:\ti-desk\* usuario@SEU_IP:/var/www/ti-desk/
-```
-
-### 5. Instale as dependências do projeto
-
-```bash
-cd /var/www/ti-desk
-npm install
-```
-
-### 6. Configure o HTTPS com mkcert
-
-```bash
-# Instale o mkcert
-sudo apt install -y wget
-wget https://github.com/FiloSottile/mkcert/releases/latest/download/mkcert-v1.4.4-linux-amd64 -O mkcert
-chmod +x mkcert
-sudo mv mkcert /usr/local/bin/
-
-# Instale a CA local
-mkcert -install
-
-# Gere o certificado para o IP do servidor
-cd /var/www/ti-desk
-mkcert localhost 127.0.0.1 SEU_IP_LOCAL
-```
-
-> Substitua `SEU_IP_LOCAL` pelo IP da VM (ex: `172.16.0.110`).
-
-Verifique os nomes dos arquivos gerados e confirme no `backend/server.js`:
-
-```js
-const cert = fs.readFileSync('./localhost+2.pem');
-const key  = fs.readFileSync('./localhost+2-key.pem');
-```
-
-### 7. Ajuste as permissões
-
-```bash
-sudo chown -R $USER:$USER /var/www/ti-desk
-sudo chmod 775 /var/www/ti-desk
-```
-
-### 8. Instale o PM2 e inicie o servidor
-
-```bash
-sudo npm install -g pm2
-cd /var/www/ti-desk
-pm2 start backend/server.js --name syschamados
-```
-
-### 9. Configure o PM2 para iniciar com o sistema
-
-```bash
-pm2 startup
-# Execute o comando que o PM2 exibir (começa com sudo env ...)
-pm2 save
-```
-
-### 10. Acesse no navegador
-
-```
-https://SEU_IP_LOCAL:3000
-```
-
-### 11. Comandos úteis do PM2
-
-```bash
-pm2 status              # Ver status dos processos
-pm2 logs syschamados    # Ver logs em tempo real
-pm2 restart syschamados # Reiniciar o servidor
-pm2 stop syschamados    # Parar o servidor
-pm2 delete syschamados  # Remover o processo do PM2
-```
+- Lista todos os chamados de todos os usuários
+- Abre por padrão com filtro **"Aberto"** para priorizar atendimento
+- Ordenação por prioridade de status: **Aberto → Em Andamento → Resolvido**
+- Mesmos recursos de busca, filtro e paginação da tela "Meus Chamados"
+- Atualização automática a cada **15 segundos**
 
 ---
 
-## Distribuição do certificado para os clientes Windows
+### Abrir Novo Chamado
 
-Para que o Chrome reconheça o certificado como confiável (necessário para notificações e salvamento de senhas), instale o certificado CA do mkcert em cada máquina que acessar o sistema.
+Formulário com os seguintes campos:
 
-### Exportar o certificado CA do servidor Linux
+| Campo | Obrigatório | Descrição |
+|-------|-------------|-----------|
+| Nome do Colaborador | Sim | Nome de quem está solicitando o atendimento |
+| Título do Chamado | Sim | Resumo do problema |
+| Categoria | Sim | Sistema Salutem, Impressora, Requisição, Sistemas Diversos, Treinamento, E-mail, Rede/Internet, Hardware, Telefonia, Outros |
+| Prioridade | Sim | Baixa, Média (padrão), Alta |
+| Localização / Sala | Sim | Local onde está o equipamento ou colaborador |
+| Descrição Detalhada | Sim | Detalhamento completo do problema |
+| Imagens / Capturas | Não | Até **5 imagens** (PNG, JPG, GIF, WebP) por drag-and-drop ou clique |
 
-```bash
-# Descubra onde está o CA
-mkcert -CAROOT
-
-# Copie para um local acessível (ex: pasta pública do sistema)
-cp $(mkcert -CAROOT)/rootCA.pem /var/www/ti-desk/frontend/public/rootCA.crt
-```
-
-### Baixar no Windows via SCP
-
-```powershell
-scp usuario@SEU_IP:/var/www/ti-desk/frontend/public/rootCA.crt C:\Users\SeuUsuario\Desktop\rootCA.crt
-```
-
-### Instalar via script automático
-
-Crie um `instalar-certificado.bat` e distribua via rede (pasta compartilhada Samba, pendrive, etc.):
-
-```bat
-@echo off
-PowerShell -ExecutionPolicy Bypass -Command "Invoke-WebRequest -Uri 'http://SEU_IP:3000/rootCA.crt' -OutFile '$env:TEMP\rootCA.crt'; Import-Certificate -FilePath '$env:TEMP\rootCA.crt' -CertStoreLocation Cert:\LocalMachine\Root"
-echo Certificado instalado com sucesso!
-pause
-```
-
-Execute como **Administrador**. Após instalar, reinicie o Chrome.
+- Código gerado automaticamente no formato `#ANO-XXXX` (ex: `#2026-0001`)
+- Notificação automática enviada a todos os administradores ao abrir o chamado
 
 ---
 
-## Conta padrão
+### Detalhe do Chamado
 
-| Perfil | Usuário | Senha |
-|---|---|---|
-| Administrador TI | admin | admin123 |
+- Exibe todas as informações: código, título, colaborador, status, prioridade, categoria, localização, solicitante, datas
+- **Anexos** com preview de imagens clicável para ampliar
+- Botão **Imprimir** para impressão da página
+- Botão **Voltar** que retorna à tela de origem corretamente
 
-> Troque a senha após o primeiro acesso pelo painel de Usuários.
+#### Chat de Atendimento
 
----
+- Troca de mensagens em tempo real entre usuário e TI
+- Polling automático a cada **5 segundos** para novas mensagens
+- Suporte a **anexo de imagens** nas mensagens (até 3 por envio)
+- Chat encerrado automaticamente quando o status muda para **Resolvido**
+- Identificação visual de mensagens do usuário e da TI
 
-## Estrutura do Projeto
+#### Alteração de Status *(somente admin)*
 
-```
-ti-desk/
-├── backend/
-│   └── server.js               # Servidor Express + SQLite + HTTPS
-├── frontend/
-│   └── public/
-│       ├── index.html          # SPA principal
-│       ├── favicon.ico
-│       ├── logoWhite.png       # Logo para o sistema
-│       ├── logoWhitebgblack.png # Logo para notificações do navegador
-│       ├── css/
-│       │   └── style.css       # Estilos completos + responsivo
-│       └── js/
-│           ├── api.js          # Cliente HTTP
-│           ├── app.js          # Roteador + auth + notificações + helpers
-│           └── pages/
-│               ├── dashboard.js      # Dashboard com polling
-│               ├── tickets.js        # Lista de chamados com polling
-│               ├── ticket-detail.js  # Detalhe + chat em tempo real
-│               ├── new-ticket.js     # Formulário de abertura
-│               ├── users.js          # Gestão de usuários
-│               └── history.js        # Histórico de chamados resolvidos
-├── uploads/                    # Imagens enviadas (criado automaticamente)
-├── tidesk.db                   # Banco de dados SQLite (criado automaticamente)
-├── localhost+2.pem             # Certificado HTTPS (gerado pelo mkcert)
-├── localhost+2-key.pem         # Chave privada HTTPS (gerada pelo mkcert)
-└── package.json
-```
+- Botões para alterar para: **Aberto**, **Em Andamento**, **Resolvido**
+- Confirmação via modal antes de aplicar a alteração
+- Ao resolver, o chamado é fechado e uma notificação é enviada ao solicitante
 
 ---
 
-## Banco de Dados
+### Histórico de Chamados
 
-O banco `tidesk.db` é criado automaticamente na raiz do projeto na primeira execução.
+- Exibe todos os chamados com status **Resolvido**
+- **Filtro por mês** com abas de seleção rápida
+- Admin vê o histórico de todos os usuários; usuário vê apenas o seu
+- Linhas clicáveis para revisar o detalhe de chamados anteriores
 
-### Tabelas
+---
 
-| Tabela | Descrição |
-|---|---|
-| `users` | Usuários do sistema (id, name, username, password, role, department, avatar, color, active) |
-| `tickets` | Chamados (code, title, description, category, priority, status, location, user_id, assigned_to) |
-| `ticket_messages` | Mensagens do chat por chamado |
-| `ticket_attachments` | Arquivos/imagens anexados a chamados e mensagens |
-| `notifications` | Notificações por usuário |
+### Notificações
 
-### Zerar todos os chamados (manter usuários)
+- Sino de notificações na barra superior com **badge** de não lidas
+- Painel com lista das últimas **30 notificações**
+- Atualização automática a cada **10 segundos**
+- **Notificação do navegador** (push) ao receber novas atualizações
+- Ao clicar em uma notificação, o chamado correspondente é aberto e a notificação marcada como lida
+- **Marcação automática como lida** ao abrir o chamado por qualquer caminho
+- Botão **"Marcar lidas"** para limpar todas de uma vez
 
-**Pare o servidor antes!**
+Eventos que geram notificações:
 
-```bash
-pm2 stop syschamados
+| Evento | Destinatário |
+|--------|-------------|
+| Novo chamado aberto | Todos os admins |
+| Nova mensagem no chat | Todos os outros participantes do chamado |
+| Chamado marcado como resolvido | Solicitante do chamado |
 
-sqlite3 /var/www/ti-desk/tidesk.db
-```
+---
 
-```sql
-DELETE FROM ticket_messages;
-DELETE FROM ticket_attachments;
-DELETE FROM notifications;
-DELETE FROM tickets;
-DELETE FROM sqlite_sequence WHERE name IN ('tickets','ticket_messages','ticket_attachments','notifications');
-.quit
-```
+### Gestão de Usuários *(somente admin)*
 
-```bash
-pm2 start syschamados
-```
+- Grid com todos os usuários cadastrados
+- **Busca** por nome, usuário ou departamento
+- **Criar usuário**: nome, usuário de login, departamento, perfil, senha
+- **Editar usuário**: nome, usuário, departamento, perfil, status (ativo/inativo)
+- **Ativar / Desativar** usuário diretamente pelo card
+- **Redefinir senha** com campo de confirmação
+- Avatar gerado automaticamente pelas iniciais do nome
+- Usuários inativos não conseguem fazer login
 
-> No Windows, use o **DB Browser for SQLite** → https://sqlitebrowser.org
+---
+
+## Perfis de usuário
+
+| Recurso | Usuário | Admin |
+|---------|:-------:|:-----:|
+| Ver os próprios chamados | Sim | Sim |
+| Abrir novo chamado | Sim | Sim |
+| Ver todos os chamados | Não | Sim |
+| Alterar status de chamados | Não | Sim |
+| Histórico de chamados | Próprios | Todos |
+| Dashboard com estatísticas | Próprias | Completas |
+| Gestão de usuários | Não | Sim |
+| Imprimir listagem | Não | Sim |
 
 ---
 
 ## API — Rotas disponíveis
 
 ### Autenticação
+
 | Método | Rota | Descrição |
-|---|---|---|
-| POST | `/api/auth/login` | Login com username + password |
+|--------|------|-----------|
+| POST | `/api/auth/login` | Login |
 | POST | `/api/auth/logout` | Logout |
-| GET | `/api/auth/me` | Retorna usuário logado |
+| GET | `/api/auth/me` | Retorna usuário da sessão atual |
 
 ### Chamados
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/api/tickets` | Lista chamados (filtros: status, month, search) |
-| GET | `/api/tickets/months` | Meses com chamados (para filtro) |
-| GET | `/api/tickets/history` | Chamados resolvidos (filtro por mês) |
-| GET | `/api/tickets/:id` | Detalhe de um chamado com mensagens e anexos |
-| POST | `/api/tickets` | Criar chamado (multipart, até 5 imagens) |
-| PUT | `/api/tickets/:id/status` | Alterar status: aberto, andamento, resolvido (admin) |
-| PUT | `/api/tickets/:id/assign` | Atribuir responsável TI (admin) |
 
-### Mensagens
-| Método | Rota | Descrição |
-|---|---|---|
-| POST | `/api/tickets/:id/messages` | Enviar mensagem no chat (até 3 imagens) |
+| Método | Rota | Auth | Descrição |
+|--------|------|------|-----------|
+| GET | `/api/tickets` | Usuário | Lista chamados (admin vê todos; usuário vê os seus) |
+| POST | `/api/tickets` | Usuário | Abre novo chamado (`multipart/form-data`) |
+| GET | `/api/tickets/months` | Usuário | Meses com chamados (para filtro de histórico) |
+| GET | `/api/tickets/history` | Usuário | Chamados resolvidos com filtro por mês |
+| GET | `/api/tickets/:id` | Usuário | Detalhe com mensagens e anexos |
+| PUT | `/api/tickets/:id/status` | Admin | Altera status do chamado |
+| PUT | `/api/tickets/:id/assign` | Admin | Atribui responsável ao chamado |
+| POST | `/api/tickets/:id/messages` | Usuário | Envia mensagem no chat |
 
 ### Notificações
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/api/notifications` | Lista notificações do usuário (últimas 30) |
-| PUT | `/api/notifications/:id/read` | Marca notificação como lida |
-| PUT | `/api/notifications/read-all` | Marca todas como lidas |
 
-### Usuários (somente admin)
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/api/users` | Lista todos os usuários |
-| POST | `/api/users` | Criar novo usuário |
-| PUT | `/api/users/:id` | Editar usuário (atualiza avatar automaticamente) |
-| PUT | `/api/users/:id/password` | Redefinir senha |
+| Método | Rota | Auth | Descrição |
+|--------|------|------|-----------|
+| GET | `/api/notifications` | Usuário | Lista as últimas 30 notificações |
+| PUT | `/api/notifications/read-all` | Usuário | Marca todas como lidas |
+| PUT | `/api/notifications/:id/read` | Usuário | Marca uma notificação como lida |
+
+### Usuários
+
+| Método | Rota | Auth | Descrição |
+|--------|------|------|-----------|
+| GET | `/api/users` | Admin | Lista todos os usuários |
+| POST | `/api/users` | Admin | Cria novo usuário |
+| PUT | `/api/users/:id` | Admin | Edita dados do usuário |
+| PUT | `/api/users/:id/password` | Admin | Redefine senha do usuário |
 
 ### Estatísticas
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/api/stats` | Totais por status + por categoria (admin vê tudo, usuário vê os próprios) |
+
+| Método | Rota | Auth | Descrição |
+|--------|------|------|-----------|
+| GET | `/api/stats` | Usuário | Contadores por status (e por categoria para admin) |
 
 ---
 
-## Categorias de Chamado
+## Configurações técnicas
 
-- Sistema Salutem
-- Impressora
-- Requisição
-- Sistemas Diversos
-- Treinamento
-- E-mail
-- Rede / Internet
-- Hardware
-- Telefonia
-- Outros
-
----
-
-## Configurações
-
-### Alterar a porta
-
-No topo do `backend/server.js`:
-
-```js
-const PORT = 3000;
-```
-
-### Alterar intervalos de atualização automática
-
-| Arquivo | Trecho | Padrão | Descrição |
-|---|---|---|---|
-| `app.js` | `setInterval(loadNotifications, 10000)` | 10s | Polling de notificações |
-| `dashboard.js` | `setInterval(..., 10000)` | 10s | Atualização do dashboard |
-| `tickets.js` | `setInterval(..., 15000)` | 15s | Atualização da lista de chamados |
-| `ticket-detail.js` | `setInterval(..., 5000)` | 5s | Polling do chat |
-
----
-
-## Dependências
-
-| Pacote | Versão | Uso |
-|---|---|---|
-| `express` | ^4.18 | Servidor web |
-| `express-session` | ^1.18 | Sessões de login (duração: 8h) |
-| `bcryptjs` | ^2.4 | Criptografia de senhas |
-| `better-sqlite3` | ^9.4 | Banco de dados SQLite |
-| `multer` | ^1.4 | Upload de arquivos |
-| `https` | nativo Node.js | Servidor HTTPS |
-
----
-
-## Modo desenvolvimento (com auto-reload)
-
-```bash
-npm run dev
-```
-
-> Requer `nodemon` instalado (já está nas devDependencies).
-
----
-
-## Observações importantes
-
-- Sempre pare o servidor antes de editar o banco diretamente (`pm2 stop syschamados`)
-- O campo `username` é case-insensitive no login (LOWER() aplicado no SQLite)
-- Chamados com status **Resolvido** não aceitam novas mensagens no chat
-- O avatar do usuário é recalculado automaticamente ao salvar alterações no nome
-- O botão **Imprimir** na lista de chamados aparece apenas para administradores
-- Notificações nativas do Windows requerem HTTPS com certificado confiável instalado
-- A sessão expira após 8 horas de inatividade — o usuário é redirecionado ao login
-- Ao criar ou editar usuários, nome e username são validados contra duplicatas antes de salvar
+| Parâmetro | Valor |
+|-----------|-------|
+| Porta | `3000` |
+| Protocolo | HTTPS (HTTP disponível via configuração) |
+| Banco de dados | SQLite (`tidesk.db`) |
+| Duração da sessão | 8 horas |
+| Tamanho máximo de upload | 10 MB por arquivo |
+| Tipos de arquivo aceitos | JPEG, JPG, PNG, GIF, WebP, PDF |
+| Arquivos por chamado (abertura) | até 5 |
+| Arquivos por mensagem (chat) | até 3 |
+| Polling de chat | a cada 5 segundos |
+| Polling de notificações | a cada 10 segundos |
+| Polling de listagem de chamados | a cada 15 segundos |
+| Polling do dashboard | a cada 10 segundos |

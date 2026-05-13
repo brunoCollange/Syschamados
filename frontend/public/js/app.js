@@ -1,8 +1,11 @@
 // ── State ─────────────────────────────────────────────────────────────────────
 let currentUser = null;
 let currentPage = '';
+let _previousPage = null;
+let _previousParam = null;
 let notifInterval = null;
 let _lastNotifIds = new Set();
+let _cachedNotifs = [];
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 async function doLogin() {
@@ -79,9 +82,23 @@ const pageTitles = {
   history: 'Histórico de Chamados', 'ticket-detail': 'Detalhe do Chamado',
 };
 
+function goBack() {
+  if (_previousPage) {
+    showPage(_previousPage, _previousParam);
+  } else {
+    showPage('tickets');
+  }
+}
+
+window.addEventListener('popstate', e => {
+  if (e.state && e.state.page) showPage(e.state.page, e.state.param ?? null);
+});
+
 function showPage(page, param = null) {
   closeSidebar();
   closeNotifPanel();
+  _previousPage = currentPage || null;
+  _previousParam = null;
   currentPage = page;
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   const active = document.querySelector(`.nav-item[data-page="${page}"]`);
@@ -110,6 +127,7 @@ async function loadNotifications() {
       if (!isFirstLoad) showBrowserNotif(n.title, n.description, n.ticket_id);
     });
     notifs.forEach(n => _lastNotifIds.add(n.id));
+    _cachedNotifs = notifs;
 
     const unread = notifs.filter(n => !n.read).length;
     const dot = document.getElementById('notifDot');

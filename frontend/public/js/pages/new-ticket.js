@@ -15,6 +15,10 @@ function renderNewTicket(el) {
 
         <div class="form-grid">
           <div class="form-group form-full">
+            <label class="form-label">Nome do Colaborador *</label>
+            <input type="text" class="form-control" id="nt-collaborator" placeholder="Ex: Maria Santos, João Silva...">
+          </div>
+          <div class="form-group form-full">
             <label class="form-label">Título do Chamado *</label>
             <input type="text" class="form-control" id="nt-title" placeholder="Ex: Sem acesso à internet, Problemas com sistema...">
           </div>
@@ -108,6 +112,8 @@ async function submitNewTicket() {
   const err = document.getElementById('nt-error');
   err.style.display = 'none';
 
+  const collaborator = document.getElementById('nt-collaborator').value.trim();
+  if (!collaborator) { err.textContent = 'O nome do colaborador é obrigatório.'; err.style.display = 'flex'; return; }
   if (!title) { err.textContent = 'O título é obrigatório.'; err.style.display = 'flex'; return; }
   if (!desc) { err.textContent = 'A descrição é obrigatória.'; err.style.display = 'flex'; return; }
   const location = document.getElementById('nt-location').value.trim();
@@ -118,6 +124,7 @@ async function submitNewTicket() {
 
   try {
     const fd = new FormData();
+    fd.append('collaborator_name', collaborator);
     fd.append('title', title);
     fd.append('description', desc);
     fd.append('category', document.getElementById('nt-cat').value);

@@ -8,7 +8,7 @@ async function renderTicketDetail(el, ticketId) {
 
     el.innerHTML = `
       <div style="margin-bottom:14px">
-        <button class="btn btn-outline btn-sm" onclick="history.back()">← Voltar</button>
+        <button class="btn btn-outline btn-sm" onclick="goBack()">← Voltar</button>
         <button class="btn btn-outline btn-sm" style="margin-left:8px" onclick="window.print()">🖨 Imprimir</button>
       </div>
 
@@ -18,7 +18,7 @@ async function renderTicketDetail(el, ticketId) {
         <div class="ticket-meta">
           <div class="ticket-meta-item">
             <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-            ${esc(t.user_name)}
+            ${esc(t.collaborator_name || t.user_name)}
           </div>
           ${t.department ? `<div class="ticket-meta-item">${esc(t.department)}</div>` : ''}
           <div class="ticket-meta-item">${esc(t.category)}</div>
@@ -90,6 +90,7 @@ async function renderTicketDetail(el, ticketId) {
             <div class="info-row"><span class="info-label">Prioridade</span>${badgePriority(t.priority)}</div>
             <div class="info-row"><span class="info-label">Categoria</span><span class="info-value-truncate" title="${esc(t.category)}">${esc(t.category)}</span></div>
             <div class="info-row"><span class="info-label">Localização</span><span class="info-value-truncate" title="${esc(t.location || '—')}">${esc(t.location || '—')}</span></div>
+           ${t.collaborator_name ? `<div class="info-row"><span class="info-label">Colaborador</span><span class="info-value-truncate" title="${esc(t.collaborator_name)}">${esc(t.collaborator_name)}</span></div>` : ''}
            <div class="info-row"><span class="info-label">Solicitante</span><span class="info-value-truncate" title="${esc(t.user_name)}">${esc(t.user_name)}</span></div>
             <div class="info-row"><span class="info-label">Aberto em</span><span>${formatDateTime(t.created_at)}</span></div>
             <div class="info-row"><span class="info-label">Atualizado</span><span>${formatDateTime(t.updated_at)}</span></div>
@@ -107,6 +108,13 @@ async function renderTicketDetail(el, ticketId) {
           </div>` : ''}
         </div>
       </div>`;
+    // Marca notificações deste chamado como lidas
+    const unreadForTicket = (_cachedNotifs || []).filter(n => n.ticket_id === t.id && !n.read);
+    if (unreadForTicket.length) {
+      Promise.all(unreadForTicket.map(n => api.put(`/api/notifications/${n.id}/read`).catch(() => {})))
+        .then(() => loadNotifications());
+    }
+
     // Inicia polling do chat
     clearInterval(_chatInterval);
     _lastMessageId = t.messages?.length ? t.messages[t.messages.length - 1].id : 0;

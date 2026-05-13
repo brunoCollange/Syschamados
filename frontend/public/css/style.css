@@ -1468,6 +1468,51 @@ tbody tr:hover td {
   font-size: 14px;
 }
 
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-top: 1px solid var(--gray-200);
+  font-size: 13px;
+  color: var(--gray-500);
+}
+
+.pagination-btns {
+  display: flex;
+  gap: 4px;
+}
+
+.page-btn {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--gray-200);
+  background: #fff;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--gray-700);
+  transition: background .15s, border-color .15s;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: var(--gray-100);
+  border-color: var(--gray-300);
+}
+
+.page-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 .search-bar {
   display: flex;
   gap: 8px;

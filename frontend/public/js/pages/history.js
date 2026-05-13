@@ -29,7 +29,7 @@ async function renderHistory(el) {
               <tr>
                 <th>ID</th>
                 <th>Título</th>
-                <th>Solicitante</th>
+                <th>Colaborador</th>
                 <th>Categoria</th>
                 <th>Prioridade</th>
                 <th>Status</th>
@@ -65,7 +65,7 @@ async function loadHistoryTable() {
       <tr style="cursor:pointer" onclick="showPage('ticket-detail',${t.id})">
         <td class="ticket-id-code">${esc(t.code)}</td>
         <td><span class="text-truncate" title="${esc(t.title)}">${esc(t.title)}</span></td>
-        <td>${esc(t.user_name)}</td>
+        <td>${esc(t.collaborator_name || t.user_name)}</td>
         <td>${esc(t.category)}</td>
         <td>${badgePriority(t.priority)}</td>
         <td>${badgeStatus(t.status)}</td>

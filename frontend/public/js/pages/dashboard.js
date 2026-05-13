@@ -77,20 +77,19 @@ async function loadDashboard(el) {
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>ID</th><th>Título</th><th>Solicitante</th><th>Categoria</th><th>Prioridade</th><th>Status</th><th>Data</th><th></th></tr></thead>
+          <thead><tr><th>ID</th><th>Título</th><th>Colaborador</th><th>Categoria</th><th>Prioridade</th><th>Status</th><th>Data</th></tr></thead>
           <tbody>
             ${recent.length ? recent.map(t => `
-              <tr>
+              <tr style="cursor:pointer" onclick="showPage('ticket-detail', ${t.id})">
                 <td class="ticket-id-code">${esc(t.code)}</td>
                 <td><span class="text-truncate" title="${esc(t.title)}">${esc(t.title)}</span></td>
-                <td>${esc(t.user_name)}</td>
+                <td>${esc(t.collaborator_name || t.user_name)}</td>
                 <td>${esc(t.category)}</td>
                 <td>${badgePriority(t.priority)}</td>
                 <td>${badgeStatus(t.status)}</td>
                 <td style="color:var(--gray-400)">${t.created_at ? t.created_at.split(' ')[0] : ''}</td>
-                <td><button class="btn btn-outline btn-sm" onclick="showPage('ticket-detail', ${t.id})">Ver</button></td>
               </tr>`).join('')
-            : '<tr><td colspan="8"><div class="empty-state"><p>Nenhum chamado ainda.</p></div></td></tr>'}
+            : '<tr><td colspan="7"><div class="empty-state"><p>Nenhum chamado ainda.</p></div></td></tr>'}
           </tbody>
         </table>
       </div>

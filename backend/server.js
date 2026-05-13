@@ -82,6 +82,9 @@ db.exec(`
   );
 `);
 
+// Migração: adiciona coluna collaborator_name se ainda não existir
+try { db.exec('ALTER TABLE tickets ADD COLUMN collaborator_name TEXT'); } catch(e) {}
+
 // Cria usuário admin padrão se não existir
 const adminExists = db.prepare('SELECT id FROM users WHERE username = ?').get('admin');
 if (!adminExists) {
@@ -292,12 +295,13 @@ app.get('/api/tickets/:id', requireAuth, (req, res) => {
 
 app.post('/api/tickets', requireAuth, upload.array('files', 5), (req, res) => {
   try {
-    const { title, description, category, priority, location } = req.body;
+    const { title, description, category, priority, location, collaborator_name } = req.body;
     if (!title || !description) return res.status(400).json({ error: 'Título e descrição são obrigatórios' });
+    if (!collaborator_name) return res.status(400).json({ error: 'O nome do colaborador é obrigatório' });
 
     const code = nextCode();
-    const info = db.prepare(`INSERT INTO tickets (code, title, description, category, priority, impact, location, user_id) VALUES (?,?,?,?,?,?,?,?)`)
-      .run(code, title, description, category || 'Outros', priority || 'media', null, location, req.session.userId);
+    const info = db.prepare(`INSERT INTO tickets (code, title, description, category, priority, impact, location, collaborator_name, user_id) VALUES (?,?,?,?,?,?,?,?,?)`)
+      .run(code, title, description, category || 'Outros', priority || 'media', null, location, collaborator_name, req.session.userId);
     const ticketId = info.lastInsertRowid;
 
     if (req.files?.length) {
