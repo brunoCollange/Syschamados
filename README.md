@@ -72,9 +72,59 @@ app.listen(PORT, () => console.log(`TI Desk rodando em http://localhost:${PORT}`
 
 ---
 
-## Iniciando o sistema
+## Instalação no Linux (Ubuntu Server)
 
-### Opção A — Script automático (Windows)
+### 1. Instalar Git e Node.js
+
+```bash
+sudo apt update && sudo apt install -y git
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+sudo apt install -y nodejs
+```
+
+### 2. Clonar o repositório e instalar dependências
+
+```bash
+git clone https://github.com/brunoCollange/Syschamados.git
+cd Syschamados
+npm install
+```
+
+### 3. Instalar o PM2 e iniciar o sistema
+
+O PM2 mantém o sistema rodando em segundo plano e reinicia automaticamente se o servidor cair ou reiniciar.
+
+```bash
+sudo npm install -g pm2
+pm2 start npm --name "syschamados" -- start
+pm2 startup
+pm2 save
+```
+
+O sistema estará disponível em **http://IP-DO-SERVIDOR:3000**
+
+### 4. Atualizar o sistema no futuro
+
+```bash
+cd /caminho/para/ti-desk
+git pull origin main
+pm2 restart syschamados
+```
+
+**Comandos úteis do PM2:**
+
+| Comando | O que faz |
+|---------|-----------|
+| `pm2 status` | Ver se o sistema está rodando |
+| `pm2 logs syschamados` | Ver os logs em tempo real |
+| `pm2 restart syschamados` | Reiniciar após um `git pull` |
+| `pm2 stop syschamados` | Parar o sistema |
+
+---
+
+## Iniciando o sistema (Windows)
+
+### Opção A — Script automático
 
 Execute o arquivo `Run_ti-desk.bat` como **Administrador**. Ele inicia o servidor e abre o navegador automaticamente em `https://localhost:3000`.
 
